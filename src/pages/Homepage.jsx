@@ -121,7 +121,6 @@ export default function App() {
           heroRef={heroRef}
           heroOn={heroOn}
           onOpenDetails={openDetails}
-          onLoginOpen={() => navigate('/login')}
         />
 
         {/* Non-technical details section (collapsed) */}

@@ -1,0 +1,24 @@
+.page-wrapper {
+  position: relative;
+}
+
+/* A lightweight CSS-only route fade/slide that works with React 18 */
+.route-fade {
+  animation: routeFadeIn 260ms ease both;
+}
+
+@keyframes routeFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Make sure root pages stretch to full height so transitions look smooth */
+.page-wrapper > * {
+  min-height: 100vh;
+}

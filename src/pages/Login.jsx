@@ -38,18 +38,23 @@ export default function Login() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
+//logic to handle login :>
   const submit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
-      // On success, navigate to the protected assessment page
       navigate('/assessment');
     } catch (err) {
-      // Show a simple, helpful message
-      setError(err?.message ?? 'Failed to sign in. Please check credentials.');
+      // Map Firebase error codes to user-friendly messages
+      let message = 'Failed to sign in. Please check your credentials.';
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+        message = 'Incorrect email or password.';
+      } else if (err.code === 'auth/user-not-found') {
+        message = 'No account found with this email.';
+      }
+      setError(message);
       setLoading(false);
     }
   };

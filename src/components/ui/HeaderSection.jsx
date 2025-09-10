@@ -12,8 +12,16 @@ import {
   Avatar
 } from '@mui/material';
 import { HealthAndSafety, LockOutlined } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 export function HeaderSection({ heroRef, heroOn, onOpenDetails, onLoginOpen }) {
+  const navigate = useNavigate();
+
+  const handleLogin = () => {
+    // use router navigation for a proper animated route transition
+    navigate('/login');
+  };
+
   return (
     <>
       <AppBar position="static" color="transparent" elevation={0}>
@@ -23,7 +31,7 @@ export function HeaderSection({ heroRef, heroOn, onOpenDetails, onLoginOpen }) {
             PneumoniAI
           </Typography>
           <Button color="inherit" sx={{ mr: 1 }} href="#features"></Button>
-          <Button variant="contained" color="primary" startIcon={<LockOutlined />} onClick={onLoginOpen}>
+          <Button variant="contained" color="primary" startIcon={<LockOutlined />} onClick={handleLogin}>
             Login
           </Button>
         </Toolbar>
