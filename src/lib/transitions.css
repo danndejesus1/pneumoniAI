@@ -4,7 +4,7 @@
 
 /* A lightweight CSS-only route fade/slide that works with React 18 */
 .route-fade {
-  animation: routeFadeIn 260ms ease both;
+  animation: routeFadeIn 1000ms ease both;
 }
 
 @keyframes routeFadeIn {

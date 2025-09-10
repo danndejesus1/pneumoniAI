@@ -177,7 +177,7 @@ export default function App() {
           </Collapse>
         </Box>
 
-        {/* Key Features Grid */}
+        {/* Key Features Grid Cards :) */}
         <Box component="section" sx={{ py: 6, bgcolor: '#f8f9fa' }}>
           <Container maxWidth="lg">
             <Typography variant="h5" gutterBottom textAlign="center" sx={{ mb: 4 }}>
@@ -187,9 +187,9 @@ export default function App() {
             <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' } }}>
               {[
                 { icon: VerifiedUser, title: 'Privacy & Security', desc: 'Data is encrypted in transit and at rest, with role-based access and audit logging for clinical workflows.', color: '#e3f2fd' },
-                { icon: Speed, title: 'Fast Analysis', desc: 'Quick chest X-ray analysis with optimized inference for real-time clinical decision support.', color: '#f3e5f5' },
+                { icon: Speed, title: 'Fast Analysis', desc: 'Quick chest X-ray analysis with optimized inference for clinical decision support.', color: '#f3e5f5' },
                 { icon: Info, title: 'Easy Integration', desc: 'Seamless integration with existing PACS and EHR systems through secure APIs and standard formats.', color: '#e1f5fe' },
-                { icon: SupportAgent, title: 'Clinical Support', desc: 'Comprehensive documentation and responsive support designed specifically for clinical teams.', color: '#e8f5e8' }
+                { icon: SupportAgent, title: 'AI Powered Assessments', desc: 'Comprehensive assessments and responsive support designed specifically for clinical teams through utilization of AI.', color: '#e8f5e8' }
               ].map((feature, index) => (
                 <Box key={index} sx={{ display: 'flex' }}>
                   <Card 
@@ -236,7 +236,7 @@ export default function App() {
           </Container>
         </Box>
 
-        {/* Footer :) */}
+        {}
         <FooterSection />
 
         <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} />
