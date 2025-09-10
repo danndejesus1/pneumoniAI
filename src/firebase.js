@@ -1,9 +1,9 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-// import other SDKs as needed:
-// import { getAuth } from "firebase/auth";
-// import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -17,9 +17,10 @@ const firebaseConfig = {
 
 export const firebaseApp = initializeApp(firebaseConfig);
 
+// Initialize and export services
+export const auth = getAuth(firebaseApp);
+export const db = getFirestore(firebaseApp);
+export const storage = getStorage(firebaseApp);
+
 // Analytics should only run in browser
 export const analytics = typeof window !== "undefined" ? getAnalytics(firebaseApp) : null;
-
-// export other services when needed:
-// export const auth = getAuth(firebaseApp);
-// export const db = getFirestore(firebaseApp);
