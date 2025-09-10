@@ -26,6 +26,7 @@ import {
   Divider
 } from '@mui/material';
 import { HealthAndSafety, LockOutlined, VerifiedUser, Speed, Info, SupportAgent } from '@mui/icons-material';
+import { FooterSection } from '../components/ui/FooterSection';
 
 // Theme keeps the same palette / feel as your previous design
 const theme = createTheme({
@@ -121,7 +122,7 @@ export default function App() {
             <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }}>
               Pneumonia AI
             </Typography>
-            <Button color="inherit" sx={{ mr: 1 }} href="#features">Features</Button>
+            <Button color="inherit" sx={{ mr: 1 }} href="#features"></Button>
             <Button variant="contained" color="primary" startIcon={<LockOutlined />} onClick={() => setLoginOpen(true)}>
               Login
             </Button>
@@ -221,198 +222,67 @@ export default function App() {
           </Collapse>
         </Box>
 
-        {/* Updated: Vertical card layout matching the image style */}
+        {/* Key Features Grid */}
         <Box component="section" sx={{ py: 6, bgcolor: '#f8f9fa' }}>
           <Container maxWidth="lg">
             <Typography variant="h5" gutterBottom textAlign="center" sx={{ mb: 4 }}>
-              More about the project
+              Key Features
             </Typography>
 
-            <Grid container spacing={3} alignItems="stretch">
-              <Grid item xs={12} sm={6} md={6} sx={{ display: 'flex' }}>
-                <Card 
-                  variant="outlined" 
-                  sx={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    flex: 1,
-                    p: 3,
-                    textAlign: 'center',
-                    bgcolor: 'white',
-                    borderRadius: 2,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                    <Box sx={{ 
-                      width: 64, 
-                      height: 64, 
-                      borderRadius: 2, 
-                      bgcolor: '#e3f2fd',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mb: 1
-                    }}>
-                      <VerifiedUser sx={{ fontSize: 32, color: 'primary.main' }} />
-                    </Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                      Privacy & Security
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                      Data is encrypted in transit and at rest, with role-based access and audit logging for clinical workflows.
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-
-              <Grid item xs={12} sm={6} md={6} sx={{ display: 'flex' }}>
-                <Card 
-                  variant="outlined" 
-                  sx={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    flex: 1,
-                    p: 3,
-                    textAlign: 'center',
-                    bgcolor: 'white',
-                    borderRadius: 2,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                    <Box sx={{ 
-                      width: 64, 
-                      height: 64, 
-                      borderRadius: 2, 
-                      bgcolor: '#f3e5f5',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mb: 1
-                    }}>
-                      <Speed sx={{ fontSize: 32, color: 'secondary.main' }} />
-                    </Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                      Validation & Performance
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                      Validated on diverse clinical datasets; inference optimized for low-latency clinical use.
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-
-              <Grid item xs={12} sm={6} md={6} sx={{ display: 'flex' }}>
-                <Card 
-                  variant="outlined" 
-                  sx={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    flex: 1,
-                    p: 3,
-                    textAlign: 'center',
-                    bgcolor: 'white',
-                    borderRadius: 2,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                    <Box sx={{ 
-                      width: 64, 
-                      height: 64, 
-                      borderRadius: 2, 
-                      bgcolor: '#e1f5fe',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mb: 1
-                    }}>
-                      <Info sx={{ fontSize: 32, color: 'info.main' }} />
-                    </Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                      Deployment & Integrations
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                      Deploy on-prem or in cloud; integrates with PACS and EHR systems via secure APIs and standard export formats.
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-
-              <Grid item xs={12} sm={6} md={6} sx={{ display: 'flex' }}>
-                <Card 
-                  variant="outlined" 
-                  sx={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    flex: 1,
-                    p: 3,
-                    textAlign: 'center',
-                    bgcolor: 'white',
-                    borderRadius: 2,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                    <Box sx={{ 
-                      width: 64, 
-                      height: 64, 
-                      borderRadius: 2, 
-                      bgcolor: '#e8f5e8',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mb: 1
-                    }}>
-                      <SupportAgent sx={{ fontSize: 32, color: 'success.main' }} />
-                    </Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                      Support & Docs
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                      Comprehensive documentation, deployment guides, and responsive support for clinical teams.
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
+            <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' } }}>
+              {[
+                { icon: VerifiedUser, title: 'Privacy & Security', desc: 'Data is encrypted in transit and at rest, with role-based access and audit logging for clinical workflows.', color: '#e3f2fd' },
+                { icon: Speed, title: 'Fast Analysis', desc: 'Quick chest X-ray analysis with optimized inference for real-time clinical decision support.', color: '#f3e5f5' },
+                { icon: Info, title: 'Easy Integration', desc: 'Seamless integration with existing PACS and EHR systems through secure APIs and standard formats.', color: '#e1f5fe' },
+                { icon: SupportAgent, title: 'Clinical Support', desc: 'Comprehensive documentation and responsive support designed specifically for clinical teams.', color: '#e8f5e8' }
+              ].map((feature, index) => (
+                <Box key={index} sx={{ display: 'flex' }}>
+                  <Card 
+                    variant="outlined" 
+                    sx={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      flex: 1,
+                      p: 3,
+                      textAlign: 'center',
+                      bgcolor: 'white',
+                      borderRadius: 2,
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
+                      }
+                    }}
+                  >
+                    <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                      <Box sx={{ 
+                        width: 64, 
+                        height: 64, 
+                        borderRadius: 2, 
+                        bgcolor: feature.color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mb: 1
+                      }}>
+                        <feature.icon sx={{ fontSize: 32, color: 'primary.main' }} />
+                      </Box>
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                        {feature.title}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                        {feature.desc}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Box>
+              ))}
+            </Box>
           </Container>
         </Box>
 
-        {/* Features */}
-        <Box component="main" id="features" ref={featuresRef} sx={{ py: 8, flexGrow: 1 }}>
-          <Container maxWidth="lg">
-            <Fade in={featuresOn} timeout={700}>
-              <Grid container spacing={4} sx={{ alignItems: 'stretch' }}>
-                <Grid item xs={12}>
-                  <Paper variant="outlined" sx={{ p: 3 }}>
-                    <Typography variant="h6" gutterBottom>Key features</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Core features (upload, fast inference, clinical security, exportable reports) remain available—cards removed for a simplified layout.
-                    </Typography>
-                  </Paper>
-                </Grid>
-              </Grid>
-            </Fade>
-          </Container>
-        </Box>
-
-        {/* Footer */}
-        <Box component="footer" sx={{ bgcolor: 'grey.50', py: 4 }}>
-          <Container maxWidth="lg">
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Pneumonia AI</Typography>
-                <Typography variant="body2" color="text.secondary">AI-assisted chest X‑ray analysis · © {new Date().getFullYear()}</Typography>
-              </Grid>
-              <Grid item xs={12} md={6} sx={{ textAlign: { xs: 'left', md: 'right' } }}>
-                <Link href="#" underline="none" sx={{ mr: 2 }}>Terms</Link>
-                <Link href="#" underline="none">Privacy</Link>
-              </Grid>
-            </Grid>
-          </Container>
-        </Box>
+        {/* Enhanced Footer */}
+        <FooterSection />
 
         <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} />
       </Box>
