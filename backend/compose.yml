@@ -14,7 +14,6 @@ services: # docker compose up / down
     env_file: .env
     volumes:
       - ./assets:/app/assets:ro
-      - ./model.py:/app/model.py:ro
       - ./api.py:/app/api.py:ro
       - ./llm.py:/app/llm.py:ro
     restart: unless-stopped
@@ -24,8 +23,6 @@ services: # docker compose up / down
           path: requirements.txt
         - action: rebuild
           path: Dockerfile
-        - action: restart
-          path: model.py
         - action: restart
           path: api.py
         - action: restart

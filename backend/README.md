@@ -7,9 +7,10 @@ An open, educational prototype for low‑resource rural clinical settings (e.g. 
 > IMPORTANT: This system does NOT provide a medical diagnosis and must never replace a licensed radiologist or physician.
 
 ## Core Features
-- `POST /predict` upload X‑ray (JPEG/PNG) → pathology probability vector (multi‑label)
-- `POST /report` runs prediction + generates structured summary sections via Gemini (if key configured)
+- `POST /predict` upload X‑ray (JPEG/PNG) → single pneumonia probability + threshold assessment (minimal output)
+- `POST /report` uses stored prediction ID to generate structured summary via Gemini (if key configured)
 - `POST /chat` guarded, context‑aware follow‑up Q&A limited to pneumonia triage scope
+- `GET /prediction/{id}` fetch stored prediction by id
 - `GET /healthz` basic liveness/device info
 - Docker Compose dev loop with file watch (rebuild/restart on changes)
 
@@ -32,12 +33,11 @@ llm.py
   └── chat_followup()
 ```
 
-### Data Flow (/report)
-1. Image → preprocessing → model scores
-2. Filter pneumonia‑related pathologies (pneumonia, consolidation, infiltration, effusion, atelectasis)
-3. Build context string
-4. Gemini prompt → JSON extraction attempt
-5. Return `{ prediction, report }` (+ fallback error if key missing)
+### Data Flow Overview
+1. `/predict`: Image → preprocessing → model → pneumonia probability extracted → stored with UUID
+2. Client receives JSON with `id` + pneumonia-only summary
+3. `/report`: Accepts `prediction_id` → pneumonia-only context → Gemini LLM → structured JSON sections
+4. `/chat`: Follow‑up referencing `prediction_id` (and/or report JSON) with pneumonia-only guardrails
 
 ### Guardrails
 - Scope limited to chest X‑ray pneumonia triage
@@ -57,12 +57,43 @@ curl -X POST http://localhost:8000/predict -F file=@assets/<image>.jpeg | jq
 ```
 
 ## Response Schema (Predict)
+Pneumonia-only minimal JSON:
 ```
 {
-  "pathologies": ["Atelectasis", ...],
-  "probabilities": [0.12, ...],
-  "inference_time_sec": 0.1234
+  "id": "<uuid>",
+  "Pneumonia": 0.7421,
+  "threshold": 0.7,
+  "meets_threshold": true,
+  "assessment": "High likelihood of pneumonia (>= 70% threshold).",
+  "inference_time_sec": 0.1234,
+  "created_at": 1712345678.12
 }
+```
+Environment variable `PNEUMONIA_THRESHOLD` (default 0.70) controls threshold logic.
+
+### Image & Mask Fields
+If Firebase Storage credentials provided (FIREBASE_BUCKET and optional FIREBASE_CREDENTIALS_JSON), `/predict` also returns:
+```
+image: {
+  original_filename: "chest123.jpg",
+  object: "predictions/<id>/image.jpg",
+  url: "https://.../image.jpg",        // public for hackathon
+  storage_mode: "firebase" | "static"
+},
+masks: {
+  has_any: true|false,
+  saliency: { available: bool, url?, object? },
+  rsna: { available: bool, url?, object? }
+},
+has_mask: bool
+```
+If mask generation fails or thresholds not met, `has_mask=false` and mask entries show `available:false`.
+
+Environment variables:
+```
+FIREBASE_BUCKET=<bucket-name>
+FIREBASE_CREDENTIALS_JSON='{"type":"service_account",...}'   # (optional, else ADC)
+STORAGE_PREFIX=gs://existing-bucket   # bypass firebase upload (treat as static prefix)
 ```
 
 ## Local Development (Without Docker)
@@ -74,20 +105,24 @@ uvicorn api:app --reload
 
 ## LLM Endpoints (Detailed)
 ### 1. POST /report
-Multipart form-data: `file` = X‑ray image
-Returns:
+JSON Body:
+```
+{ "prediction_id": "<uuid from /predict>" }
+```
+Returns pneumonia-only structured sections:
 ```
 {
-  "prediction": { pathologies: [...], probabilities: [...], inference_time_sec: 0.42 },
+  "prediction_id": "<uuid>",
+  "prediction": { ...same object as /predict... },
   "report": {
-     "context": "Chest X-ray model probability summary...",
+     "context": "Model probability: Pneumonia: 0.742 (NOT diagnostic, single-label focus).",
      "raw": "<LLM raw text>",
-     "parsed": { "summary": "...", ... } | null,
+     "parsed": { "summary": "...", "pneumonia_assessment": "...", ... } | null,
      "disclaimer": "Model + LLM output not a medical diagnosis..."
   }
 }
 ```
-If `GEMINI_API_KEY` absent: `report.error` explains fallback.
+If `GEMINI_API_KEY` absent: `report.error` + `context` provided.
 
 ### 2. POST /chat
 Body:
@@ -104,21 +139,62 @@ Response:
 If out of scope → refusal + reminder.
 
 ## Example Session
-1. Get probabilities:
+1. Predict & get ID:
 ```
 curl -X POST http://localhost:8000/predict -F file=@assets/test-pneumonia.jpeg | jq
 ```
-2. Structured report:
+2. Structured report (using ID):
 ```
-curl -X POST http://localhost:8000/report -F file=@assets/test-pneumonia.jpeg | jq
+curl -X POST http://localhost:8000/report \
+  -H 'Content-Type: application/json' \
+  -d '{"prediction_id":"<UUID_FROM_PREDICT>"}' | jq
 ```
 3. Follow-up question:
 ```
 curl -X POST http://localhost:8000/chat \
   -H 'Content-Type: application/json' \
-  -d '{"message":"Explain in simple terms","report": <REPORT_JSON>}' | jq
+  -d '{"message":"Explain in simple terms","prediction_id":"<UUID_FROM_PREDICT>"}' | jq
 ```
 
 ## Safety & Disclaimer
 Outputs are NOT a medical diagnosis. Always seek a licensed physician. The system targets educational triage assistance in low-resource settings and must not be the sole basis for treatment. All usage implies acceptance of limitations and responsibility for clinical decisions lies with qualified professionals.
+
+---
+### Backward Compatibility Notes
+Earlier versions returned full pathology arrays; these were removed for simplicity. For multi-label needs, use a previous tag or extend the code.
+
+---
+## Suggested Firestore Data Model
+
+Collection: `predictions`
+```
+id: string
+createdAt: timestamp
+imageRef: string                // Cloud Storage path of original X-ray
+pneumoniaProbability: number    // same as "Pneumonia" field
+threshold: number
+meetsThreshold: boolean
+assessment: string
+inferenceTimeSec: number
+report: {                       // added after /report
+  parsed: map | null
+  raw: string
+  context: string
+  disclaimer: string
+  generatedAt: timestamp
+}
+status: string                  // 'PREDICTED' | 'REPORTED'
+version: number                 // schema version
+```
+
+Indexes:
+- (status, createdAt desc)
+- meetsThreshold
+
+Security:
+- De-identify filenames / use hashed IDs
+- Restrict reads to authorized roles
+
+Retention:
+- Scheduled purge or archive to cold storage per compliance.
 
