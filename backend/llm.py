@@ -1,8 +1,5 @@
 import os
 from typing import Dict, Any, List
-from dotenv import load_dotenv
-
-load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY and GEMINI_API_KEY.lower() in {"replace_me", "your_key_here", "changeme"}:

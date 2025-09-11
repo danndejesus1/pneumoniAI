@@ -19,11 +19,12 @@ import {
 } from '@mui/material';
 import { Person, ReportProblem, LocalHospital } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import {addDoc, collection, serverTimestamp, updateDoc, doc as fsDoc} from 'firebase/firestore';
 import {db} from '../firebase.js';
 import {useAuth} from '../context/AuthContext.jsx';
 import {storage} from '../firebase.js';
 import {ref, uploadBytesResumable, getDownloadURL} from 'firebase/storage';
+import {predictXray} from '../services/backendApi.js';
 
 import DemographicsSection from '../components/forms/DemographicsSection.jsx';
 import SymptomsSection from '../components/forms/SymptomsSection.jsx';
@@ -117,8 +118,7 @@ export default function AssessmentPage() {
     if (!form.sex) e.sex = 'Sex is required';
     if (!form.contact.trim()) e.contact = 'Contact is required';
     if (!form.address.trim()) e.address = 'Address is required';
-    if (!Object.values(form.symptoms).some(Boolean))
-      e.symptoms = 'Select at least one symptom';
+    if (!Object.values(form.symptoms).some(Boolean));
     if (form.smokingStatus === 'current' || form.smokingStatus === 'former') {
       if (form.packYears === '' || Number.isNaN(Number(form.packYears)) || Number(form.packYears) < 0)
         e.packYears = 'Pack-years required';
@@ -201,7 +201,18 @@ export default function AssessmentPage() {
       await addDoc(collection(db, 'assessments', docRef.id, 'diagnosis'), diagnosisPayload);
 
         // 3) Upload xray image if present, else store placeholder
+        let backendPredictionId = null;
+        let xrayDocRef = null;
         if (form.xrayFile) {
+            // Before upload: create xray doc with metadata and status
+            xrayDocRef = await addDoc(collection(db, 'assessments', docRef.id, 'xray'), {
+                fileName: form.xrayFile.name,
+                size: form.xrayFile.size,
+                type: form.xrayFile.type,
+                uploadedBy: user.uid,
+                status: 'uploading',
+                createdAt: serverTimestamp(),
+            });
             // Setup storage ref and upload
             const xrayRef = ref(storage, `xray/${docRef.id}/${form.xrayFile.name}`);
             const uploadTask = uploadBytesResumable(xrayRef, form.xrayFile);
@@ -216,20 +227,55 @@ export default function AssessmentPage() {
                         setSnackbarSeverity('error');
                         setOpenSnackbar(true);
                         setSubmitting(false);
+                        // Patch xray doc with error status
+                        updateDoc(xrayDocRef, {status: 'error'});
                         reject(error);
                     },
                     async () => {
-                        // Complete: get download URL & set in Firestore
-                        const url = await getDownloadURL(uploadTask.snapshot.ref);
-                        await addDoc(collection(db, 'assessments', docRef.id, 'xray'), {
-                            imageUrl: url,
-                            fileName: form.xrayFile.name,
-                            size: form.xrayFile.size,
-                            type: form.xrayFile.type,
-                            uploadedBy: user.uid,
-                            createdAt: serverTimestamp(),
-                        });
-                        setForm((prev) => ({...prev, xrayUploadProgress: 100, xrayURL: url}));
+                        try {
+                            // Complete: get download URL & patch xray doc with url/status
+                            const url = await getDownloadURL(uploadTask.snapshot.ref);
+                            await updateDoc(xrayDocRef, {
+                                imageUrl: url,
+                                status: 'complete',
+                                completedAt: serverTimestamp(),
+                            });
+                            await updateDoc(fsDoc(db, 'assessments', docRef.id), {xrayURL: url});
+                            setForm((prev) => ({...prev, xrayUploadProgress: 100, xrayURL: url}));
+                            // Send image to backend for prediction
+                            let fullPredictionResult = null;
+                            try {
+                                const predictionRes = await predictXray(form.xrayFile);
+                                fullPredictionResult = predictionRes;
+                                if (predictionRes && predictionRes.id) {
+                                    backendPredictionId = predictionRes.id;
+                                    await addDoc(collection(db, 'assessments', docRef.id, 'backendPrediction'), {
+                                        predictionId: backendPredictionId,
+                                        createdAt: serverTimestamp(),
+                                    });
+                                    await updateDoc(fsDoc(db, 'assessments', docRef.id), {backendPredictionId});
+                                }
+                            } catch (err) {
+                                console.error('Backend prediction failed', err);
+                                setSnackbarMsg('Backend prediction failed');
+                                setSnackbarSeverity('error');
+                                setOpenSnackbar(true);
+                            }
+                            // PASS FULL PREDICTION TO ResultPage
+                            navigate('/result', {
+                                state: {
+                                    assessmentId: docRef.id,
+                                    predictionFull: fullPredictionResult
+                                }
+                            });
+                            resolve();
+                            return;
+                        } catch (uploadErr) {
+                            console.error('Failed to save image URL or update doc:', uploadErr);
+                            setSnackbarMsg('Failed to patch record after x-ray upload.');
+                            setSnackbarSeverity('error');
+                            setOpenSnackbar(true);
+                        }
                         resolve();
                     }
                 );
@@ -247,7 +293,6 @@ export default function AssessmentPage() {
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
       // redirect to ResultPage and include the assessment id in location state
-      navigate('/result', { state: { assessmentId: docRef.id } });
     } catch (err) {
       console.error('Submission failed', err);
       setSnackbarMsg('Failed to submit assessment.');
@@ -338,7 +383,7 @@ export default function AssessmentPage() {
             <Box component="form" onSubmit={handleSubmit} noValidate>
               <Stack spacing={3}>
                 <SectionCard
-                  title="Demographics"
+                  title="Patient Information"
                   subtitle="Patient name, age, sex and contact"
                   icon={<Person />}
                   orange={false}
