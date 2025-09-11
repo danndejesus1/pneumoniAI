@@ -1,0 +1,67 @@
+services: # docker compose up / down
+  model:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn api:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      PYTHONUNBUFFERED: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      PORT: "8000"
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-1.5-flash}
+    env_file: .env
+    volumes:
+      - ./assets:/app/assets:ro
+      - ./model.py:/app/model.py:ro
+      - ./api.py:/app/api.py:ro
+      - ./llm.py:/app/llm.py:ro
+    restart: unless-stopped
+    develop:
+      watch:
+        - action: rebuild
+          path: requirements.txt
+        - action: rebuild
+          path: Dockerfile
+        - action: restart
+          path: model.py
+        - action: restart
+          path: api.py
+        - action: restart
+          path: llm.py
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+    networks:
+      - erni-network
+
+  # Optional database service for future use
+  # db:
+  #   image: postgres:17.5
+  #   ports:
+  #     - 5432:5432
+  #   environment:
+  #     - POSTGRES_USER=dbuser
+  #     - POSTGRES_PASSWORD=dbpassword
+  #     - POSTGRES_DB=devdb
+  #   volumes:
+  #     - erni_db_volume:/var/lib/postgresql/data #mounting named volume to container directory for data persistence
+
+# volumes:
+#   erni_db_volume: #named volume for database persistence
+
+networks:
+  erni-network:
+    driver: bridge

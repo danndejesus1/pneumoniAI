@@ -1,0 +1,14 @@
+torch
+torchvision
+torchxrayvision
+scikit-image
+pandas
+imageio
+requests
+fastapi
+uvicorn[standard]
+python-multipart
+langchain
+google-generativeai
+python-dotenv
+langchain-google-genai
