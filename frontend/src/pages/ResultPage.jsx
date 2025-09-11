@@ -37,7 +37,6 @@ export default function ResultPage() {
 
     // Simple local chat placeholder state
   const [messages, setMessages] = useState([
-    { id: 1, from: 'system', text: 'This is a placeholder chat. A clinician or bot will appear here.' },
     { id: 2, from: 'user', text: 'Hello, I submitted my x‑ray earlier today.' },
   ]);
   const [input, setInput] = useState('');
@@ -198,11 +197,11 @@ export default function ResultPage() {
             )}
           </Box>
 
-            <Grid container spacing={3} justifyContent="center" alignItems="stretch">
+            <Grid container spacing={3} justifyContent="center" alignItems="stretch" sx={{minHeight: {md: 520, xs: 0}}}>
             {/* Left: X-ray image + metadata */}
-              <Grid item xs={12} md={4}>
-              <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <CardContent sx={{ py: 2.5, px: 2 }}>
+              <Grid item xs={12} md={4} sx={{display: 'flex', flexDirection: 'column', minHeight: 400}}>
+                  <Card variant="outlined" sx={{flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100%'}}>
+                      <CardContent sx={{py: 2.5, px: 2, minHeight: 400}}>
                   <Typography variant="h6" sx={{ mb: 1 }}>
                     Submitted X‑ray
                   </Typography>
@@ -239,46 +238,82 @@ export default function ResultPage() {
 
                   <Divider sx={{ my: 2 }} />
 
-                    {/* Show backend report output instead of raw prediction */}
-                    {predLoading ? (
-                        <Stack spacing={2} sx={{mt: 2}}><CircularProgress size={28}/><Typography>Fetching…</Typography></Stack>
-                    ) : predError ? (
-                        <Typography color="error">{predError}</Typography>
-                    ) : (reportObj ? (
-                        (() => {
-                            const parsed = getStructuredReport(reportObj);
-                            return parsed ? (
-                                <Stack spacing={1} sx={{mt: 1}}>
-                                    <Typography variant="subtitle2">AI-generated Triage Report:</Typography>
-                                    {parsed.summary && (
-                                        <Typography variant="body2"><strong>Summary:</strong> {parsed.summary}
-                                        </Typography>
-                                    )}
-                                    {parsed.pneumonia_assessment && (
-                                        <Typography variant="body2"><strong>Pneumonia
-                                            Assessment:</strong> {parsed.pneumonia_assessment}</Typography>
-                                    )}
-                                    {parsed.differential && parsed.differential !== '' && (
-                                        <Typography variant="body2"><strong>Differential:</strong> {parsed.differential}
-                                        </Typography>
-                                    )}
-                                    {parsed.next_steps && (
-                                        <Typography variant="body2"><strong>Next Steps:</strong> {parsed.next_steps}
-                                        </Typography>
-                                    )}
-                                    {parsed.patient_friendly && (
-                                        <Typography
-                                            variant="body2"><strong>Patient-friendly:</strong> {parsed.patient_friendly}
-                                        </Typography>
-                                    )}
-                                    {reportObj.disclaimer && (
-                                        <Typography variant="caption"
-                                                    color="text.secondary">{reportObj.disclaimer}</Typography>
-                                    )}
-                                    {reportObj.context && (
-                                        <Typography variant="caption"
-                                                    color="text.secondary">{reportObj.context}</Typography>
-                                    )}
+                          {/* Show backend report output instead of raw prediction */}
+                          {predLoading ? (
+                              <Stack spacing={2} sx={{mt: 2}}><CircularProgress
+                                  size={28}/><Typography>Fetching…</Typography></Stack>
+                          ) : predError ? (
+                              <Typography color="error">{predError}</Typography>
+                          ) : (reportObj ? (
+                              (() => {
+                                  const parsed = getStructuredReport(reportObj);
+                                  return parsed ? (
+                                      <Stack spacing={1} sx={{
+                                          mt: 1,
+                                          maxWidth: {xs: '100%', md: 400},
+                                          minWidth: 0,
+                                          wordBreak: 'break-word',
+                                          overflowWrap: 'break-word',
+                                          whiteSpace: 'pre-wrap'
+                                      }}>
+                                          <Typography variant="subtitle2">Triage Report:</Typography>
+                                          {parsed.summary && (
+                                              <Typography variant="body2" sx={{
+                                                  wordBreak: 'break-word',
+                                                  overflowWrap: 'break-word',
+                                                  whiteSpace: 'pre-wrap'
+                                              }}><strong>Summary:</strong> {parsed.summary}
+                                              </Typography>
+                                          )}
+                                          {parsed.pneumonia_assessment && (
+                                              <Typography variant="body2" sx={{
+                                                  wordBreak: 'break-word',
+                                                  overflowWrap: 'break-word',
+                                                  whiteSpace: 'pre-wrap'
+                                              }}><strong>Pneumonia
+                                                  Assessment:</strong> {parsed.pneumonia_assessment}</Typography>
+                                          )}
+                                          {parsed.differential && parsed.differential !== '' && (
+                                              <Typography variant="body2" sx={{
+                                                  wordBreak: 'break-word',
+                                                  overflowWrap: 'break-word',
+                                                  whiteSpace: 'pre-wrap'
+                                              }}><strong>Differential:</strong> {parsed.differential}
+                                              </Typography>
+                                          )}
+                                          {parsed.next_steps && (
+                                              <Typography variant="body2" sx={{
+                                                  wordBreak: 'break-word',
+                                                  overflowWrap: 'break-word',
+                                                  whiteSpace: 'pre-wrap'
+                                              }}><strong>Next Steps:</strong> {parsed.next_steps}
+                                              </Typography>
+                                          )}
+                                          {parsed.patient_friendly && (
+                                              <Typography
+                                                  variant="body2" sx={{
+                                                  wordBreak: 'break-word',
+                                                  overflowWrap: 'break-word',
+                                                  whiteSpace: 'pre-wrap'
+                                              }}><strong>Patient-friendly:</strong> {parsed.patient_friendly}
+                                              </Typography>
+                                          )}
+                                          {reportObj.disclaimer && (
+                                              <Typography variant="caption"
+                                                          color="text.secondary" sx={{
+                                                  wordBreak: 'break-word',
+                                                  overflowWrap: 'break-word',
+                                                  whiteSpace: 'pre-wrap'
+                                              }}>{reportObj.disclaimer}</Typography>
+                                          )}
+                                          {reportObj.context && (
+                                              <Typography variant="caption"
+                                                          color="text.secondary" sx={{
+                                                  wordBreak: 'break-word',
+                                                  overflowWrap: 'break-word',
+                                                  whiteSpace: 'pre-wrap'
+                                              }}>{reportObj.context}</Typography>
+                                          )}
                         </Stack>
                       ) : (
                           <Typography variant="body2">Failed to parse structured report.</Typography>
@@ -295,9 +330,11 @@ export default function ResultPage() {
             </Grid>
 
             {/* Right: Chat area */}
-              <Grid item xs={12} md={8}>
-              <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <CardContent sx={{ py: 2.5, px: 2 }}>
+                <Grid item xs={12} md={8} sx={{display: 'flex', flexDirection: 'column', minHeight: 400}}>
+                    <Card variant="outlined"
+                          sx={{flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100%'}}>
+                        <CardContent
+                            sx={{py: 2.5, px: 2, minHeight: 400, flex: 1, display: 'flex', flexDirection: 'column'}}>
                   <Typography variant="h6" sx={{ mb: 1 }}>
                       Chat
                   </Typography>
@@ -306,13 +343,15 @@ export default function ResultPage() {
                   <Box
                     ref={listRef}
                     sx={{
-                      height: { xs: 320, md: 420 },
+                        flex: 1,
                       overflowY: 'auto',
                       pr: 1,
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 1.25,
                       mb: 2,
+                        minHeight: 120,
+                        maxHeight: {xs: 320, md: 420}
                     }}
                   >
                     {messages.map((m) => (
@@ -325,16 +364,21 @@ export default function ResultPage() {
                           px: 2,
                           py: 1,
                           borderRadius: 2,
-                            maxWidth: '100%',
+                            maxWidth: {xs: '100%', md: 470},
+                            minWidth: 0,
+                            wordBreak: 'break-word',
+                            overflowWrap: 'break-word',
                           boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                            whiteSpace: 'pre-wrap',
                         }}
                       >
-                        <Typography variant="body2">{m.text}</Typography>
+                          <Typography variant="body2"
+                                      sx={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>{m.text}</Typography>
                       </Box>
                     ))}
                   </Box>
 
-                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{mt: 'auto'}}>
                     <TextField
                         placeholder="Type a message"
                       value={input}
