@@ -20,12 +20,14 @@ import {
   DialogActions,
   TextField,
   Collapse,
-  Divider
+    Divider,
+    CircularProgress
 } from '@mui/material';
 import { LockOutlined, VerifiedUser, Speed, Info, SupportAgent } from '@mui/icons-material';
 import { FooterSection } from '../components/ui/FooterSection';
 import { HeaderSection } from '../components/ui/HeaderSection';
 import { useNavigate } from 'react-router-dom';
+import {useAuth} from '../context/AuthContext.jsx';
 
 // Theme keeps the same palette / feel as your previous design
 const theme = createTheme({
@@ -88,14 +90,15 @@ function LoginDialog({ open, onClose }) {
 }
 
 export default function App() {
+    const {user, loading} = useAuth();
   const [loginOpen, setLoginOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   const heroRef = useRef();
-  const featuresRef = useRef();
+    // const featuresRef = useRef();
 
   const heroOn = useOnScreen(heroRef, '-10%');
-  const featuresOn = useOnScreen(featuresRef, '-10%');
+    // const featuresOn = useOnScreen(featuresRef, '-10%');
 
   const detailsRef = useRef();
 
@@ -113,7 +116,26 @@ export default function App() {
 
   const navigate = useNavigate();
 
-  return (
+    useEffect(() => {
+        if (!loading && user) {
+            navigate('/assessment', {replace: true});
+        }
+    }, [user, loading, navigate]);
+
+    if (loading) {
+        return (
+            <Box sx={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: 'background.default'
+            }}>
+                <CircularProgress size={48} color="primary"/>
+            </Box>
+        );
+    }
+    return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', scrollBehavior: 'smooth' }}>

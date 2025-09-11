@@ -7,8 +7,7 @@ import AssessmentPage from './pages/AssessmentPage';
 import ResultPage from './pages/ResultPage';
 import './lib/transitions.css';
 import './firebase'
-
-
+import {AuthProvider} from './context/AuthContext.jsx';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -42,6 +41,8 @@ function AppRouter() {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <AppRouter />
+      <AuthProvider>
+          <AppRouter/>
+      </AuthProvider>
   </StrictMode>,
 )

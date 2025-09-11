@@ -18,14 +18,17 @@ import {
   Avatar,
 } from '@mui/material';
 import { Person, ReportProblem, LocalHospital } from '@mui/icons-material';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import {db} from '../firebase';
+import {useAuth} from '../context/AuthContext.jsx';
+import {storage} from '../firebase';
+import {ref, uploadBytesResumable, getDownloadURL} from 'firebase/storage';
 
 import DemographicsSection from '../components/forms/DemographicsSection';
 import SymptomsSection from '../components/forms/SymptomsSection';
 import MedicalHistorySection from '../components/forms/MedicalHistorySection';
+import ImageUploadSection from '../components/forms/ImageUploadSection';
 
 const initialForm = {
   fullName: '',
@@ -42,6 +45,10 @@ const initialForm = {
   packYears: '',
   exposureRisks: [],
   additionalConcerns: '',
+    xrayFile: null,
+    xrayPreview: '',
+    xrayUploadProgress: 0,
+    xrayURL: '',
 };
 
 // Top-level SectionCard prevents remounts that caused inputs to lose focus
@@ -83,12 +90,10 @@ function SectionCard({ title, subtitle, icon, orange = false, children }) {
 }
 
 export default function AssessmentPage() {
+    const {user, loading, signOut} = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [checking, setChecking] = useState(true);
-
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -96,18 +101,13 @@ export default function AssessmentPage() {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMsg, setSnackbarMsg] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+    const [xrayUploadError, setXrayUploadError] = useState('');
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      if (u) setUser(u);
-      else {
-        setUser(null);
-        navigate('/login', { replace: true });
+      if (!loading && !user) {
+          navigate('/login', {replace: true});
       }
-      setChecking(false);
-    });
-    return () => unsubscribe();
-  }, [navigate]);
+  }, [user, loading, navigate]);
 
   const validate = () => {
     const e = {};
@@ -167,6 +167,7 @@ export default function AssessmentPage() {
     }
 
     setSubmitting(true);
+      setForm((prev) => ({...prev, xrayUploadProgress: 0}));
     try {
       // 1) Create main assessment document with demographics + metadata only
       const mainPayload = {
@@ -199,14 +200,48 @@ export default function AssessmentPage() {
 
       await addDoc(collection(db, 'assessments', docRef.id, 'diagnosis'), diagnosisPayload);
 
-      // 3) Create an xray placeholder document inside `xray` subcollection
-      const xrayPlaceholder = {
-        placeholder: true,
-        notes: 'xray placeholder - no image uploaded yet',
-        createdAt: serverTimestamp(),
-      };
-
-      await addDoc(collection(db, 'assessments', docRef.id, 'xray'), xrayPlaceholder);
+        // 3) Upload xray image if present, else store placeholder
+        if (form.xrayFile) {
+            // Setup storage ref and upload
+            const xrayRef = ref(storage, `xray/${docRef.id}/${form.xrayFile.name}`);
+            const uploadTask = uploadBytesResumable(xrayRef, form.xrayFile);
+            await new Promise((resolve, reject) => {
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        const prog = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                        setForm((prev) => ({...prev, xrayUploadProgress: prog}));
+                    },
+                    (error) => {
+                        setSnackbarMsg('Failed to upload x-ray.');
+                        setSnackbarSeverity('error');
+                        setOpenSnackbar(true);
+                        setSubmitting(false);
+                        reject(error);
+                    },
+                    async () => {
+                        // Complete: get download URL & set in Firestore
+                        const url = await getDownloadURL(uploadTask.snapshot.ref);
+                        await addDoc(collection(db, 'assessments', docRef.id, 'xray'), {
+                            imageUrl: url,
+                            fileName: form.xrayFile.name,
+                            size: form.xrayFile.size,
+                            type: form.xrayFile.type,
+                            uploadedBy: user.uid,
+                            createdAt: serverTimestamp(),
+                        });
+                        setForm((prev) => ({...prev, xrayUploadProgress: 100, xrayURL: url}));
+                        resolve();
+                    }
+                );
+            });
+        } else {
+            // no file, minimal record
+            await addDoc(collection(db, 'assessments', docRef.id, 'xray'), {
+                placeholder: true,
+                notes: 'xray placeholder - no image uploaded',
+                createdAt: serverTimestamp(),
+            });
+        }
 
       setSnackbarMsg('Assessment submitted.');
       setSnackbarSeverity('success');
@@ -229,7 +264,31 @@ export default function AssessmentPage() {
     setSubmitted(false);
   };
 
-  if (checking) {
+    const handleXrayFileChange = (file) => {
+        setXrayUploadError('');
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/dicom', 'application/dicom+json', 'image/dicom', 'application/octet-stream'];
+        if (!allowedTypes.includes(file.type) && !file.name.toLowerCase().endsWith('.dcm')) {
+            setXrayUploadError('Invalid file type. Only JPG, PNG, or DICOM allowed.');
+            setForm((prev) => ({...prev, xrayFile: null, xrayPreview: ''}));
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            setXrayUploadError('File too large. Maximum is 10MB.');
+            setForm((prev) => ({...prev, xrayFile: null, xrayPreview: ''}));
+            return;
+        }
+        setForm((prev) => ({
+            ...prev,
+            xrayFile: file,
+            xrayPreview: URL.createObjectURL(file)
+        }));
+    };
+    const handleXrayRemove = () => {
+        setForm((prev) => ({...prev, xrayFile: null, xrayPreview: ''}));
+        setXrayUploadError('');
+    };
+
+    if (loading) {
     return (
       <Box sx={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <CircularProgress />
@@ -237,7 +296,7 @@ export default function AssessmentPage() {
     );
   }
 
-  return (
+    return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: isMobile ? 3 : 6 }}>
       <Container maxWidth="md">
         {/* subtle orange header stripe to echo homepage accents */}
@@ -261,10 +320,7 @@ export default function AssessmentPage() {
               </Typography>
             </Box>
             <Stack direction="row" spacing={1}>
-              <Button size="small" variant="outlined" color="inherit" onClick={() => navigate('/')}>
-                Home
-              </Button>
-              <Button size="small" variant="outlined" color="inherit" onClick={() => signOut(auth)}>
+                <Button size="small" variant="outlined" color="inherit" onClick={signOut}>
                 Sign out
               </Button>
             </Stack>
@@ -319,7 +375,24 @@ export default function AssessmentPage() {
                   />
                 </SectionCard>
 
-                <Card
+                  <SectionCard
+                      title="X-ray Image"
+                      subtitle="Attach the chest x-ray to be analyzed"
+                      icon={<ReportProblem/>}
+                      orange={false}
+                  >
+                      <ImageUploadSection
+                          file={form.xrayFile}
+                          preview={form.xrayPreview}
+                          progress={form.xrayUploadProgress}
+                          uploadError={xrayUploadError}
+                          disabled={submitting}
+                          onFileChange={handleXrayFileChange}
+                          onRemove={handleXrayRemove}
+                      />
+                  </SectionCard>
+
+                  <Card
                   variant="outlined"
                   sx={{
                     borderRadius: 2,
@@ -356,7 +429,7 @@ export default function AssessmentPage() {
                   <Typography variant="body2" color="text.secondary">The assessment was recorded.</Typography>
                   <Stack direction="row" spacing={2}>
                     <Button variant="contained" onClick={handleReset}>Start another</Button>
-                    <Button variant="outlined" onClick={() => navigate('/')}>Back to home</Button>
+                      <Button variant="outlined" onClick={() => navigate('/assessment')}>Back to assessment</Button>
                   </Stack>
                 </Stack>
               </CardContent>

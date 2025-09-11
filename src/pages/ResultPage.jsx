@@ -16,13 +16,21 @@ import {
 import SendIcon from '@mui/icons-material/Send';
 import ImageIcon from '@mui/icons-material/Image';
 import { useNavigate, useLocation } from 'react-router-dom';
+import {useAuth} from '../context/AuthContext.jsx';
 
 export default function ResultPage() {
+    const {user, loading} = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const assessmentId = location?.state?.assessmentId ?? null;
 
-  // Simple local chat placeholder state
+    useEffect(() => {
+        if (!loading && !user) {
+            navigate('/login', {replace: true});
+        }
+    }, [user, loading, navigate]);
+
+    // Simple local chat placeholder state
   const [messages, setMessages] = useState([
     { id: 1, from: 'system', text: 'This is a placeholder chat. A clinician or bot will appear here.' },
     { id: 2, from: 'user', text: 'Hello, I submitted my x‑ray earlier today.' },
@@ -68,9 +76,9 @@ export default function ResultPage() {
             )}
           </Box>
 
-          <Grid container spacing={3}>
+            <Grid container spacing={3} justifyContent="center" alignItems="stretch">
             {/* Left: X-ray image + metadata */}
-            <Grid item xs={12} md={3}>
+              <Grid item xs={12} md={4}>
               <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardContent sx={{ py: 2.5, px: 2 }}>
                   <Typography variant="h6" sx={{ mb: 1 }}>
@@ -101,16 +109,6 @@ export default function ResultPage() {
                     </Stack>
                   </Box>
 
-                  <Stack spacing={1} direction="row" sx={{ mb: 1 }} flexWrap="wrap">
-                    <Button variant="contained" onClick={() => {}} disabled>
-                      Download
-                    </Button>
-                   
-                    <Button variant="text" onClick={() => navigate('/assessment')}>
-                      Add another assessment
-                    </Button>
-                  </Stack>
-
                   <Divider sx={{ my: 2 }} />
 
                 
@@ -124,7 +122,7 @@ export default function ResultPage() {
             </Grid>
 
             {/* Right: Chat area */}
-            <Grid item xs={12} md={9}>
+              <Grid item xs={12} md={8}>
               <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardContent sx={{ py: 2.5, px: 2 }}>
                   <Typography variant="h6" sx={{ mb: 1 }}>
@@ -154,7 +152,7 @@ export default function ResultPage() {
                           px: 2,
                           py: 1,
                           borderRadius: 2,
-                          maxWidth: '%',
+                            maxWidth: '100%',
                           boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                         }}
                       >
@@ -192,8 +190,8 @@ export default function ResultPage() {
 
           {/* bottom actions */}
           <Stack direction="row" spacing={2} justifyContent="flex-end">
-            <Button variant="outlined" onClick={() => navigate('/')}>
-              Back to home
+              <Button variant="outlined" onClick={() => navigate('/assessment')}>
+                  Back to assessment
             </Button>
           </Stack>
         </Stack>

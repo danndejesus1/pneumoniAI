@@ -1,5 +1,5 @@
 // src/pages/Login.jsx
-import React, { useState } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   Box,
   Container,
@@ -20,6 +20,7 @@ import { LockOutlined } from '@mui/icons-material';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
+import {useAuth} from '../context/AuthContext.jsx';
 
 const theme = createTheme({
   palette: {
@@ -32,6 +33,7 @@ const theme = createTheme({
 });
 
 export default function Login() {
+    const {user, loading: authLoading} = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -59,7 +61,27 @@ export default function Login() {
     }
   };
 
-  return (
+    useEffect(() => {
+        if (!authLoading && user) {
+            navigate('/assessment', {replace: true});
+        }
+    }, [user, authLoading, navigate]);
+
+    if (authLoading) {
+        return (
+            <Box sx={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: 'background.default'
+            }}>
+                <CircularProgress size={48} color="primary"/>
+            </Box>
+        );
+    }
+
+    return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', bgcolor: 'background.default', py: 6 }}>
