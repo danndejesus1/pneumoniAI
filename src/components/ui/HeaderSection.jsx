@@ -50,7 +50,7 @@ export function HeaderSection({ heroRef, heroOn, onOpenDetails, onLoginOpen }) {
                   Rapid, explainable chest X‑ray analysis built for hospitals and research teams.
                 </Typography>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                  <Button variant="contained" size="large">Get started</Button>
+                  <Button variant="contained" size="large" onClick={handleLogin}>Get started</Button>
                   <Button
                     variant="outlined"
                     size="large"

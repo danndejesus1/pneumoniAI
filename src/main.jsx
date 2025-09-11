@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import App from './pages/Homepage.jsx'
 import Login from './pages/Login';
 import AssessmentPage from './pages/AssessmentPage'; 
+import ResultPage from './pages/ResultPage';
 import './lib/transitions.css';
 import './firebase'
 
@@ -24,6 +25,7 @@ function AnimatedRoutes() {
         <Route path="/" element={<App />} />
         <Route path="/login" element={<Login />} />
         <Route path="/assessment" element={<AssessmentPage />} />
+         <Route path="/result" element={<ResultPage />} />
         {/* other routes */}
       </Routes>
     </div>

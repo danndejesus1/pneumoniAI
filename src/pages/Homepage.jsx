@@ -121,6 +121,7 @@ export default function App() {
           heroRef={heroRef}
           heroOn={heroOn}
           onOpenDetails={openDetails}
+          onOpenLogin={() => setLoginOpen(true)}
         />
 
         {/* Non-technical details section (collapsed) */}
@@ -188,15 +189,15 @@ export default function App() {
               {[
                 { icon: VerifiedUser, title: 'Privacy & Security', desc: 'Data is encrypted in transit and at rest, with role-based access and audit logging for clinical workflows.', color: '#e3f2fd' },
                 { icon: Speed, title: 'Fast Analysis', desc: 'Quick chest X-ray analysis with optimized inference for clinical decision support.', color: '#f3e5f5' },
-                { icon: Info, title: 'Easy Integration', desc: 'Seamless integration with existing PACS and EHR systems through secure APIs and standard formats.', color: '#e1f5fe' },
+                { icon: Info, title: 'Easy Integration', desc: 'Seamless use of features only requiring a few quick submissions', color: '#e1f5fe' },
                 { icon: SupportAgent, title: 'AI Powered Assessments', desc: 'Comprehensive assessments and responsive support designed specifically for clinical teams through utilization of AI.', color: '#e8f5e8' }
               ].map((feature, index) => (
                 <Box key={index} sx={{ display: 'flex' }}>
-                  <Card 
-                    variant="outlined" 
-                    sx={{ 
-                      display: 'flex', 
-                      flexDirection: 'column', 
+                  <Card
+                    variant="outlined"
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
                       flex: 1,
                       p: 3,
                       textAlign: 'center',
@@ -210,10 +211,10 @@ export default function App() {
                     }}
                   >
                     <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                      <Box sx={{ 
-                        width: 64, 
-                        height: 64, 
-                        borderRadius: 2, 
+                      <Box sx={{
+                        width: 64,
+                        height: 64,
+                        borderRadius: 2,
                         bgcolor: feature.color,
                         display: 'flex',
                         alignItems: 'center',

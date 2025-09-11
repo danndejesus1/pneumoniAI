@@ -3,39 +3,93 @@ import React, { useEffect, useState } from 'react';
 import {
   Box,
   Container,
-  Paper,
+  Card,
+  CardContent,
   Typography,
   Button,
   CircularProgress,
   Stack,
   TextField,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Select,
+  Divider,
+  useTheme,
+  useMediaQuery,
   Snackbar,
   Alert,
+  Avatar,
 } from '@mui/material';
+import { Person, ReportProblem, LocalHospital } from '@mui/icons-material';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-
-// Firestore imports
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '../firebase'; // Ensure `db` is exported from src/firebase.js
+import { auth, db } from '../firebase';
+
+import DemographicsSection from '../components/forms/DemographicsSection';
+import SymptomsSection from '../components/forms/SymptomsSection';
+import MedicalHistorySection from '../components/forms/MedicalHistorySection';
+
+const initialForm = {
+  fullName: '',
+  age: '',
+  sex: '',
+  contact: '',
+  address: '',
+  symptoms: {},
+  preExisting: [],
+  preExistingOther: '',
+  medications: '',
+  allergies: '',
+  smokingStatus: '',
+  packYears: '',
+  exposureRisks: [],
+  additionalConcerns: '',
+};
+
+// Top-level SectionCard prevents remounts that caused inputs to lose focus
+function SectionCard({ title, subtitle, icon, orange = false, children }) {
+  const theme = useTheme();
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        borderRadius: 2,
+        overflow: 'visible',
+        '&:hover': { boxShadow: '0 10px 30px rgba(2,6,23,0.08)' },
+      }}
+    >
+      <CardContent sx={{ py: 2.5, px: { xs: 2, md: 3 } }}>
+        <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 1 }}>
+          <Avatar
+            sx={{
+              bgcolor: orange ? 'transparent' : theme.palette.primary.light,
+              color: orange ? '#fff' : theme.palette.primary.main,
+              background: orange ? 'linear-gradient(90deg,#ffb74d,#ff8a65)' : undefined,
+              width: 44,
+              height: 44,
+              boxShadow: orange ? '0 4px 14px rgba(255,138,101,0.18)' : undefined,
+            }}
+          >
+            {icon}
+          </Avatar>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{title}</Typography>
+            {subtitle && <Typography variant="caption" color="text.secondary">{subtitle}</Typography>}
+          </Box>
+        </Stack>
+        <Divider sx={{ mb: 2 }} />
+        {children}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function AssessmentPage() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [checking, setChecking] = useState(true);
 
-  // Form state
-  const [form, setForm] = useState({
-    fullName: '',
-    age: '',
-    sex: '',
-    symptoms: '',
-    notes: '',
-  });
+  const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -44,40 +98,59 @@ export default function AssessmentPage() {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
   useEffect(() => {
-    // Subscribe to auth state; redirect to /login if not signed in
     const unsubscribe = onAuthStateChanged(auth, (u) => {
-      if (u) {
-        setUser(u);
-      } else {
+      if (u) setUser(u);
+      else {
         setUser(null);
         navigate('/login', { replace: true });
       }
       setChecking(false);
     });
-
     return () => unsubscribe();
   }, [navigate]);
-
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-      navigate('/login', { replace: true });
-    } catch (err) {
-      console.error('Sign-out failed', err);
-    }
-  };
 
   const validate = () => {
     const e = {};
     if (!form.fullName.trim()) e.fullName = 'Full name is required';
-    if (form.age === '' || Number.isNaN(Number(form.age)) || Number(form.age) < 0) e.age = 'Valid age is required';
+    if (form.age === '' || Number.isNaN(Number(form.age)) || Number(form.age) < 0 || Number(form.age) > 120)
+      e.age = 'Valid age is required';
     if (!form.sex) e.sex = 'Sex is required';
+    if (!form.contact.trim()) e.contact = 'Contact is required';
+    if (!form.address.trim()) e.address = 'Address is required';
+    if (!Object.values(form.symptoms).some(Boolean))
+      e.symptoms = 'Select at least one symptom';
+    if (form.smokingStatus === 'current' || form.smokingStatus === 'former') {
+      if (form.packYears === '' || Number.isNaN(Number(form.packYears)) || Number(form.packYears) < 0)
+        e.packYears = 'Pack-years required';
+    }
+    if (form.preExisting.includes('Other') && !form.preExistingOther.trim())
+      e.preExistingOther = 'Please specify other condition';
     return e;
   };
 
   const handleChange = (field) => (event) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
+  // simplified: toggle symptom checkbox only (no severity)
+  const handleSymptomChange = (key) => (event) => {
+    setForm((prev) => ({
+      ...prev,
+      symptoms: { ...prev.symptoms, [key]: event.target.checked },
+    }));
+    setErrors((prev) => ({ ...prev, symptoms: undefined }));
+  };
+
+  const handlePreExisting = (event) => {
+    const value = event.target.value;
+    setForm((prev) => ({ ...prev, preExisting: typeof value === 'string' ? value.split(',') : value }));
+    setErrors((prev) => ({ ...prev, preExistingOther: undefined }));
+  };
+
+  const handleExposure = (event) => {
+    const value = event.target.value;
+    setForm((prev) => ({ ...prev, exposureRisks: typeof value === 'string' ? value.split(',') : value }));
   };
 
   const handleSubmit = async (event) => {
@@ -95,29 +168,54 @@ export default function AssessmentPage() {
 
     setSubmitting(true);
     try {
-      // Prepare payload
-      const payload = {
-        fullName: form.fullName.trim(),
-        age: Number(form.age),
-        sex: form.sex,
-        symptoms: form.symptoms.trim() || null,
-        notes: form.notes.trim() || null,
+      // 1) Create main assessment document with demographics + metadata only
+      const mainPayload = {
+        fullName: form.fullName || null,
+        age: form.age !== '' ? Number(form.age) : null,
+        sex: form.sex || null,
+        contact: form.contact || null,
+        address: form.address || null,
+        additionalConcerns: form.additionalConcerns || '',
         submittedBy: user.uid || null,
         submittedByEmail: user.email || null,
         createdAt: serverTimestamp(),
       };
 
-      // Write to Firestore
-      const docRef = await addDoc(collection(db, 'assessments'), payload);
+      const docRef = await addDoc(collection(db, 'assessments'), mainPayload);
 
-      console.log('Assessment saved with id:', docRef.id);
+      // 2) Create a diagnosis document inside the new document's `diagnosis` subcollection
+      const diagnosisPayload = {
+        symptoms: form.symptoms || {},
+        preExisting: form.preExisting || [],
+        preExistingOther: form.preExisting.includes('Other') ? form.preExistingOther : '',
+        medications: form.medications || '',
+        allergies: form.allergies || '',
+        smokingStatus: form.smokingStatus || '',
+        packYears: form.packYears ? Number(form.packYears) : null,
+        exposureRisks: form.exposureRisks || [],
+        createdAt: serverTimestamp(),
+        createdBy: user.uid || null,
+      };
+
+      await addDoc(collection(db, 'assessments', docRef.id, 'diagnosis'), diagnosisPayload);
+
+      // 3) Create an xray placeholder document inside `xray` subcollection
+      const xrayPlaceholder = {
+        placeholder: true,
+        notes: 'xray placeholder - no image uploaded yet',
+        createdAt: serverTimestamp(),
+      };
+
+      await addDoc(collection(db, 'assessments', docRef.id, 'xray'), xrayPlaceholder);
+
       setSnackbarMsg('Assessment submitted.');
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
-      setSubmitted(true);
+      // redirect to ResultPage and include the assessment id in location state
+      navigate('/result', { state: { assessmentId: docRef.id } });
     } catch (err) {
       console.error('Submission failed', err);
-      setSnackbarMsg('Failed to submit assessment. See console for details.');
+      setSnackbarMsg('Failed to submit assessment.');
       setSnackbarSeverity('error');
       setOpenSnackbar(true);
     } finally {
@@ -126,7 +224,7 @@ export default function AssessmentPage() {
   };
 
   const handleReset = () => {
-    setForm({ fullName: '', age: '', sex: '', symptoms: '', notes: '' });
+    setForm(initialForm);
     setErrors({});
     setSubmitted(false);
   };
@@ -140,132 +238,131 @@ export default function AssessmentPage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 6 }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: isMobile ? 3 : 6 }}>
       <Container maxWidth="md">
-        <Paper elevation={6} sx={{ p: { xs: 3, md: 5 }, borderRadius: 2 }}>
-          <Stack spacing={3}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Typography variant="h5">Patient Assessment</Typography>
-              <Stack direction="row" spacing={1}>
-                <Button size="small" variant="outlined" color="inherit" onClick={() => navigate('/')}>
-                  Home
-                </Button>
-                <Button size="small" variant="outlined" color="inherit" onClick={handleSignOut}>
-                  Sign out
-                </Button>
-              </Stack>
+        {/* subtle orange header stripe to echo homepage accents */}
+        <Box
+          sx={{
+            height: 8,
+            borderRadius: 2,
+            mb: 3,
+            background: 'linear-gradient(90deg, rgba(255,167,38,0.15) 0%, rgba(255,138,101,0.08) 100%)',
+          }}
+        />
+
+        <Stack spacing={3}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box>
+              <Typography variant={isMobile ? 'h6' : 'h4'} color="primary.dark" sx={{ fontWeight: 800 }}>
+                Pneumonia & Respiratory Intake
+              </Typography>
+              <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                Quick structured intake to capture symptoms and history.
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={1}>
+              <Button size="small" variant="outlined" color="inherit" onClick={() => navigate('/')}>
+                Home
+              </Button>
+              <Button size="small" variant="outlined" color="inherit" onClick={() => signOut(auth)}>
+                Sign out
+              </Button>
             </Stack>
+          </Box>
 
-            <Typography variant="body2" color="text.secondary">
-              Fill in the patient's basic information below. Data will be saved to Firestore.
+          {user ? (
+            <Typography variant="body2" color="primary">
+              Signed in as: {user.email ?? user.displayName ?? 'Unknown'}
             </Typography>
+          ) : (
+            <Typography color="text.secondary">No user information available.</Typography>
+          )}
 
-            {user ? (
-              <Typography variant="body2">Signed in as: {user.email ?? user.displayName ?? 'Unknown'}</Typography>
-            ) : (
-              <Typography color="text.secondary">No user information available.</Typography>
-            )}
+          {!submitted ? (
+            <Box component="form" onSubmit={handleSubmit} noValidate>
+              <Stack spacing={3}>
+                <SectionCard
+                  title="Demographics"
+                  subtitle="Patient name, age, sex and contact"
+                  icon={<Person />}
+                  orange={false}
+                >
+                  <DemographicsSection form={form} errors={errors} handleChange={handleChange} isMobile={isMobile} />
+                </SectionCard>
 
-            {!submitted ? (
-              <Box component="form" onSubmit={handleSubmit} noValidate>
-                <Stack spacing={2}>
-                  <TextField
-                    label="Full name"
-                    value={form.fullName}
-                    onChange={handleChange('fullName')}
-                    error={!!errors.fullName}
-                    helperText={errors.fullName}
-                    required
-                    fullWidth
+                <SectionCard
+                  title="Symptoms"
+                  subtitle="Select any symptoms"
+                  icon={<ReportProblem />}
+                  orange={true}
+                >
+                  <SymptomsSection
+                    form={form}
+                    errors={errors}
+                    handleSymptomChange={handleSymptomChange}
                   />
+                </SectionCard>
 
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <SectionCard
+                  title="Medical History"
+                  subtitle="Pre-existing conditions, meds, smoking & exposure"
+                  icon={<LocalHospital />}
+                  orange={true}
+                >
+                  <MedicalHistorySection
+                    form={form}
+                    errors={errors}
+                    handlePreExisting={handlePreExisting}
+                    handleChange={handleChange}
+                    handleExposure={handleExposure}
+                    isMobile={isMobile}
+                  />
+                </SectionCard>
+
+                <Card
+                  variant="outlined"
+                  sx={{
+                    borderRadius: 2,
+                    // subtle orange-tinted footer card to match homepage aesthetics
+                    background: 'linear-gradient(180deg, rgba(255,250,245,0.6) 0%, rgba(255,255,255,0.8) 100%)',
+                  }}
+                >
+                  <CardContent sx={{ py: 2.5, px: { xs: 2, md: 3 } }}>
                     <TextField
-                      label="Age"
-                      value={form.age}
-                      onChange={handleChange('age')}
-                      error={!!errors.age}
-                      helperText={errors.age}
-                      required
-                      type="number"
-                      inputProps={{ min: 0 }}
+                      label="Additional concerns or comments"
+                      value={form.additionalConcerns}
+                      onChange={handleChange('additionalConcerns')}
+                      multiline
+                      rows={3}
                       fullWidth
                     />
-
-                    <FormControl fullWidth required error={!!errors.sex}>
-                      <InputLabel id="sex-label">Sex</InputLabel>
-                      <Select
-                        labelId="sex-label"
-                        label="Sex"
-                        value={form.sex}
-                        onChange={handleChange('sex')}
-                      >
-                        <MenuItem value="">Select</MenuItem>
-                        <MenuItem value="female">Female</MenuItem>
-                        <MenuItem value="male">Male</MenuItem>
-                        <MenuItem value="other">Other / Prefer not to say</MenuItem>
-                      </Select>
-                      {errors.sex ? (
-                        <Typography variant="caption" color="error">
-                          {errors.sex}
-                        </Typography>
-                      ) : null}
-                    </FormControl>
-                  </Stack>
-
-                  <TextField
-                    label="Symptoms (comma separated / short description)"
-                    value={form.symptoms}
-                    onChange={handleChange('symptoms')}
-                    multiline
-                    rows={3}
-                    fullWidth
-                  />
-
-                  <TextField
-                    label="Additional notes"
-                    value={form.notes}
-                    onChange={handleChange('notes')}
-                    multiline
-                    rows={3}
-                    fullWidth
-                  />
-
-                  <Stack direction="row" spacing={2}>
-                    <Button type="submit" variant="contained" color="primary" disabled={submitting}>
-                      {submitting ? <CircularProgress size={20} /> : 'Submit Assessment'}
-                    </Button>
-                    <Button variant="outlined" color="inherit" onClick={handleReset} disabled={submitting}>
-                      Reset
-                    </Button>
-                  </Stack>
-                </Stack>
-              </Box>
-            ) : (
-              <Stack spacing={2}>
-                <Typography variant="h6">Submission received</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  The assessment has been recorded to Firestore.
-                </Typography>
-
-                <Paper variant="outlined" sx={{ p: 2 }}>
-                  <Typography variant="subtitle2">Submitted patient</Typography>
-                  <Typography><strong>Name:</strong> {form.fullName}</Typography>
-                  <Typography><strong>Age:</strong> {form.age}</Typography>
-                  <Typography><strong>Sex:</strong> {form.sex}</Typography>
-                  {form.symptoms ? <Typography><strong>Symptoms:</strong> {form.symptoms}</Typography> : null}
-                  {form.notes ? <Typography><strong>Notes:</strong> {form.notes}</Typography> : null}
-                </Paper>
-
-                <Stack direction="row" spacing={2}>
-                  <Button variant="contained" onClick={handleReset}>Start another assessment</Button>
-                  <Button variant="outlined" onClick={() => navigate('/')}>Back to home</Button>
-                </Stack>
+                    <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
+                      <Button type="submit" variant="contained" color="primary" disabled={submitting}>
+                        {submitting ? <CircularProgress size={20} /> : 'Submit Assessment'}
+                      </Button>
+                      <Button variant="outlined" color="inherit" onClick={handleReset} disabled={submitting}>
+                        Reset
+                      </Button>
+                    </Stack>
+                  </CardContent>
+                </Card>
               </Stack>
-            )}
-
-          </Stack>
-        </Paper>
+            </Box>
+          ) : (
+            <Card variant="outlined" sx={{ borderRadius: 2 }}>
+              <CardContent sx={{ py: 3, px: { xs: 2, md: 3 } }}>
+                <Stack spacing={2} alignItems="flex-start">
+                  <Typography variant="h6" color="primary.dark" fontWeight={700}>Submission received</Typography>
+                  <Typography variant="body2" color="text.secondary">The assessment was recorded.</Typography>
+                  <Stack direction="row" spacing={2}>
+                    <Button variant="contained" onClick={handleReset}>Start another</Button>
+                    <Button variant="outlined" onClick={() => navigate('/')}>Back to home</Button>
+                  </Stack>
+                </Stack>
+              </CardContent>
+            </Card>
+          )}
+        </Stack>
       </Container>
 
       <Snackbar open={openSnackbar} autoHideDuration={4000} onClose={() => setOpenSnackbar(false)}>
