@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {
   Box,
   Container,
@@ -41,21 +41,6 @@ const theme = createTheme({
   },
 });
 
-// small hook to detect when a section is on screen
-function useOnScreen(ref, rootMargin = '0px') {
-  const [isIntersecting, setIntersecting] = useState(false);
-  useEffect(() => {
-    if (!ref.current) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setIntersecting(entry.isIntersecting),
-      { rootMargin }
-    );
-    observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [ref, rootMargin]);
-  return isIntersecting;
-}
-
 function LoginDialog({ open, onClose }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -97,8 +82,8 @@ export default function App() {
   const heroRef = useRef();
     // const featuresRef = useRef();
 
-  const heroOn = useOnScreen(heroRef, '-10%');
-    // const featuresOn = useOnScreen(featuresRef, '-10%');
+    const heroOn = true; // Force hero to show for test
+    // const featuresOn = useOnScreen(featuresRef, '0px', false);
 
   const detailsRef = useRef();
 
@@ -139,6 +124,7 @@ export default function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', scrollBehavior: 'smooth' }}>
+          {console.log('Homepage mount: heroOn', heroOn, 'ref:', heroRef.current)}
         <HeaderSection
           heroRef={heroRef}
           heroOn={heroOn}
