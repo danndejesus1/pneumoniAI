@@ -20,15 +20,15 @@ import {
 import { Person, ReportProblem, LocalHospital } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import {db} from '../firebase';
+import {db} from '../firebase.js';
 import {useAuth} from '../context/AuthContext.jsx';
-import {storage} from '../firebase';
+import {storage} from '../firebase.js';
 import {ref, uploadBytesResumable, getDownloadURL} from 'firebase/storage';
 
-import DemographicsSection from '../components/forms/DemographicsSection';
-import SymptomsSection from '../components/forms/SymptomsSection';
-import MedicalHistorySection from '../components/forms/MedicalHistorySection';
-import ImageUploadSection from '../components/forms/ImageUploadSection';
+import DemographicsSection from '../components/forms/DemographicsSection.jsx';
+import SymptomsSection from '../components/forms/SymptomsSection.jsx';
+import MedicalHistorySection from '../components/forms/MedicalHistorySection.jsx';
+import ImageUploadSection from '../components/forms/ImageUploadSection.jsx';
 
 const initialForm = {
   fullName: '',

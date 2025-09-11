@@ -24,8 +24,8 @@ import {
     CircularProgress
 } from '@mui/material';
 import { LockOutlined, VerifiedUser, Speed, Info, SupportAgent } from '@mui/icons-material';
-import { FooterSection } from '../components/ui/FooterSection';
-import { HeaderSection } from '../components/ui/HeaderSection';
+import { FooterSection } from '../components/ui/FooterSection.jsx';
+import { HeaderSection } from '../components/ui/HeaderSection.jsx';
 import { useNavigate } from 'react-router-dom';
 import {useAuth} from '../context/AuthContext.jsx';
 

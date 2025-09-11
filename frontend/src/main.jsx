@@ -2,14 +2,14 @@ import { StrictMode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import App from './pages/Homepage.jsx'
-import Login from './pages/Login';
-import AssessmentPage from './pages/AssessmentPage'; 
-import ResultPage from './pages/ResultPage';
+import Login from './pages/Login.jsx';
+import AssessmentPage from './pages/AssessmentPage.jsx';
+import ResultPage from './pages/ResultPage.jsx';
 import './lib/transitions.css';
-import './firebase'
+import './firebase.js'
 import {AuthProvider} from './context/AuthContext.jsx';
 
-function AnimatedRoutes() {
+export function AnimatedRoutes() {
   const location = useLocation();
 
   // simple side-effect so the browser paints fresh on route change (helps CSS animation on mount)
@@ -31,7 +31,7 @@ function AnimatedRoutes() {
   );
 }
 
-function AppRouter() {
+export function AppRouter() {
   return (
     <BrowserRouter>
       <AnimatedRoutes />
