@@ -1,4 +1,4 @@
-# PneumoniaAI: Chest X-Ray Pneumonia Triage Suite
+# PneumoniAI: Chest X-Ray Pneumonia Triage Suite
 
 **An open-source, AI-powered prototype for pneumonia triage in resource-limited clinical settings**
 
