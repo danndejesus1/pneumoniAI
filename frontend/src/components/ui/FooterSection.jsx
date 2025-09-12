@@ -157,32 +157,6 @@ export function FooterSection() {
             </Box>
           </Grid>
 
-          {/* Quick Links */}
-          <Grid item xs={12} sm={6} md={2}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: 'white' }}>
-              Quick Links
-            </Typography>
-            <Stack spacing={1}>
-              {['Home', 'About Us', 'Services', 'Features', 'Contact'].map((link) => (
-                <Link
-                  key={link}
-                  href="#"
-                  underline="none"
-                  sx={{
-                    display: 'block',
-                    py: 0.5,
-                    fontSize: '0.875rem',
-                    color: 'rgba(255,255,255,0.8)',
-                    transition: 'color 0.2s',
-                    '&:hover': { color: '#FF8E53' }
-                  }}
-                >
-                  {link}
-                </Link>
-              ))}
-            </Stack>
-          </Grid>
-
           {/* Contact Info */}
           <Grid item xs={12} sm={6} md={3}>
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: 'white' }}>
@@ -192,53 +166,22 @@ export function FooterSection() {
               <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
                 <LocationOn fontSize="small" sx={{ color: '#FF8E53', mt: 0.5 }} />
                 <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                  123 Innovation Street<br />
-                  Tech City, TC 12345
+                  9F, Lica Malls Shaw, 500 Shaw Blvd,<br />
+                  Pleasant Hills, Mandaluyong City, 1552
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Phone fontSize="small" sx={{ color: '#FF8E53' }} />
                 <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                  (123) 456-7890
+                  Phone: +63 969 415 1687
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Email fontSize="small" sx={{ color: '#FF8E53' }} />
                 <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                  hello@pneumoniaai.com
+                  tpmlove@ernihackathon.com
                 </Typography>
               </Box>
-            </Stack>
-          </Grid>
-
-          {/* Social Links */}
-          <Grid item xs={12} md={3}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: 'white' }}>
-              Follow Us
-            </Typography>
-            
-            <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
-              {socialLinks.map(({ icon: Icon, label, url }) => (
-                <Tooltip key={label} title={`Follow us on ${label}`}>
-                  <IconButton
-                    href={url}
-                    sx={{
-                      border: 1,
-                      borderColor: 'rgba(255,255,255,0.3)',
-                      color: 'rgba(255,255,255,0.8)',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        bgcolor: '#FF8E53',
-                        borderColor: '#FF8E53',
-                        color: 'white',
-                        transform: 'translateY(-2px)'
-                      }
-                    }}
-                  >
-                    <Icon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              ))}
             </Stack>
           </Grid>
         </Grid>
@@ -258,7 +201,7 @@ export function FooterSection() {
               spacing={2} 
               sx={{ textAlign: { xs: 'left', md: 'right' } }}
             >
-              {['Privacy Policy', 'Terms of Service', 'Cookie Settings'].map((link) => (
+              {[].map((link) => (
                 <Link
                   key={link}
                   href="#"
