@@ -1,6 +1,8 @@
-# PneumoniAI: Chest X-Ray Pneumonia Triage Suite
+# PneumoniAI: Chest X-Ray Pneumonia Triage System using AI
 
-**An open-source, AI-powered prototype for pneumonia triage in resource-limited clinical settings**
+**An open, educational prototype for low‑resource rural clinical settings (e.g. Provincial / Barangay Health Centers in the Philippines) to assist trainees in preliminary chest X‑ray pneumonia triage. It combines:**
+1. TorchXRayVision DenseNet (multi‑label pathology probabilities) 
+2. Structured LLM (Gemini) summarization & guarded conversational follow‑ups
 
 ---
 
