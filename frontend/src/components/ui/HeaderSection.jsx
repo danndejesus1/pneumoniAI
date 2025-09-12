@@ -11,7 +11,8 @@ import {
   Stack,
   Avatar
 } from '@mui/material';
-import { HealthAndSafety, LockOutlined } from '@mui/icons-material';
+import { LockOutlined } from '@mui/icons-material';
+import LogoImg from '../../assets/tpmheader.png';
 import { useNavigate } from 'react-router-dom';
 
 export function HeaderSection({ heroRef, heroOn, onOpenDetails, onLoginOpen }) {
@@ -26,10 +27,15 @@ export function HeaderSection({ heroRef, heroOn, onOpenDetails, onLoginOpen }) {
     <>
       <AppBar position="static" color="transparent" elevation={0}>
         <Toolbar sx={{ px: { xs: 2, md: 6 } }}>
-          <HealthAndSafety sx={{ color: 'primary.main', mr: 1 }} />
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }}>
-            PneumoniAI
-          </Typography>
+          <Box
+            onClick={() => navigate('/')}
+            sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer', flexGrow: 1 }}
+          >
+            <Box component="img" src={LogoImg} alt="PneumoniAI logo" sx={{ height: 36 }} />
+            <Typography variant="h6" sx={{ fontWeight: 700, color: 'inherit' }}>
+              PneumoniAI
+            </Typography>
+          </Box>
           <Button color="inherit" sx={{ mr: 1 }} href="#features"></Button>
           <Button variant="contained" color="primary" startIcon={<LockOutlined />} onClick={handleLogin}>
             Login
