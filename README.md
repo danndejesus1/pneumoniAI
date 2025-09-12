@@ -1,4 +1,4 @@
-# PneumoniaAI: Chest X-Ray Pneumonia Triage Suite
+# PneumoniAI: Chest X-Ray Pneumonia Triage Suite
 
 **An open-source, AI-powered prototype for pneumonia triage in resource-limited clinical settings**
 
@@ -12,7 +12,7 @@ these limitations and compliance with your local medical and privacy regulations
 
 ## Table of Contents
 
-- [What is PneumoniaAI?](#what-is-pneumoniaai)
+- [What is PneumoniAI?](#what-is-pneumoniai)
 - [Core Features](#core-features)
 - [Tech Stack & Architecture](#tech-stack--architecture)
     - [Architecture Diagram](#architecture-diagram)
@@ -33,9 +33,9 @@ these limitations and compliance with your local medical and privacy regulations
 
 ---
 
-## What is PneumoniaAI?
+## What is PneumoniAI?
 
-**PneumoniaAI** is an educational prototype for preliminary chest X-ray pneumonia triage, designed especially for
+**PneumoniAI** is an educational prototype for preliminary chest X-ray pneumonia triage, designed especially for
 low-resource settings like rural health centers. Its goal is to support trainees and clinicians with fast, explainable
 AI assessments, visual highlights, and clear disclaimers—not to replace expert clinical review.
 
