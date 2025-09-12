@@ -221,6 +221,13 @@ A: Please open issues, pull requests, or discussion threads! For technical issue
 templates coming soon).
 
 ---
+## Project Contributions
+
+- Full Stack Developer - Apa, Giusippi Maria II D.
+- Full Stack Developer - De Jesus, Dann Jewel M.
+- Full Stack Developer - Ejercito, Marlon Jason
+
+---
 
 
 ## License & References
