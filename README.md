@@ -42,7 +42,6 @@ AI assessments, visual highlights, and clear disclaimers—not to replace expert
 Suitable for:
 
 - Trainee radiologists/clinicians in low-resource clinical settings
-- Research or hackathon teams (educational contexts)
 - Technical audiences exploring explainable AI in medicine
 
 **NOT for unsupervised clinical use or real patient triage!**
@@ -51,9 +50,9 @@ Suitable for:
 
 ## Core Features
 
-- **Image Inference:** Upload a chest X-ray (JPEG/PNG) and get a model-based pneumonia probability, threshold
-  assessment, and suggested saliency map (if confidence high).
-- **LLM-Powered Reporting:** Summarized, patient-friendly and structured output via Gemini LLM (with API key).
+- **Image Inference:** Upload a chest X-ray (JPEG/PNG) and get a model-based pneumonia probability, and threshold
+  assessment.
+- **LLM-Powered Reporting:** Summarized, patient-friendly and structured output via Gemini LLM.
 - **Guarded Clinical Chat:** Ask follow-up questions within strict scope, with guardrails and disclaimers enforced.
 - **Session Tracking:** Keeps prediction/report by case/session ID for revisit.
 - **Security:** Image uploads via Firebase Storage, access logged, role-based future support.
@@ -102,8 +101,7 @@ The backend provides REST endpoints for:
 
 ### API Endpoints
 
-- `POST /predict` — Multipart image upload, returns pneumonia-only risk score, threshold justification, and links to
-  saliency/mask visual if available. Stores to in-memory session and optionally uploads to Firebase Storage if
+- `POST /predict` — Multipart image upload, returns pneumonia-only risk score, and threshold justification. Stores to in-memory session and optionally uploads to Firebase Storage if
   configured.
 - `POST /report` — JSON ingestion (ID or full prediction), returns LLM-structured (Gemini) report: context, summary,
   justification, differentials, and patient-facing explanation. Fails gracefully if key absent.
@@ -165,7 +163,7 @@ _Make sure your backend is running & API endpoint is reachable_
 - **Home/Landing** — What is this, prompt to start/learn more
 - **Login** — Minimal, staff-only for controlled access (extendable per institution)
 - **Assessment** — Form: patient info, symptoms, exposure, image upload (with preview and progress)
-- **Results** — Shows probability, heatmaps/masks, structured report; launches guarded chat for follow-up Q&A
+- **Results** — Shows probability,  structured report; launches guarded chat for follow-up Q&A
 - **Chat** — Within scope (triage), chatbot with context from structured report/session
 
 ### Frontend Setup
@@ -187,7 +185,7 @@ _Make sure your backend is running & API endpoint is reachable_
 1. **Login**: Only authorized users can access the intake/assessment flow.
 2. **Intake**: Staff/trainee enters patient info, symptoms, and uploads X-ray.
 3. **Image Submission**: Image uploads to Firebase (if enabled), triggers `/predict` API call.
-4. **Results**: User sees pneumonia probability, assessment, and mask overlays (if available).
+4. **Results**: User sees pneumonia probability, and assessment.
 5. **LLM Report**: User may generate a structured report and send queries to the [guardrails] chatbot with the
    session/report as context.
 
@@ -210,7 +208,7 @@ A: No, unless you add robust authentication, monitoring, and policy-driven data 
 regulatory/jurisdictional standards.
 
 **Q: Is the model accurate—should I trust its outputs?**  
-A: No diagnosis is ever made. Model predictions are illustrative only. See source code and original X-ray model
+A: No diagnosis is ever made. Model predictions are illustrative and for proof of concept only. See source code and original X-ray model
 references for limitations.
 
 **Q: Can I extend this to other X-ray classes/labels?**  
@@ -222,14 +220,6 @@ templates coming soon).
 
 ---
 
-## Contributing
-
-- Fork, branch, and submit PRs using feature/bugfix/integration naming
-- Use existing code style guides (backend: Black, frontend: Prettier + ESLint)
-- Add clear descriptions to PRs and document user-impacting or data-flow changes
-- Open an issue if reporting bugs or requesting features
-
----
 
 ## License & References
 
@@ -242,4 +232,3 @@ feedback and support.
 
 ---
 
-_Questions or suggestions? Open an issue or contact the project maintainers._
